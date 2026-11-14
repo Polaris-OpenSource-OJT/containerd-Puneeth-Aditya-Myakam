@@ -32,7 +32,6 @@ import (
 	"github.com/containerd/containerd/v2/core/images"
 	"github.com/containerd/containerd/v2/pkg/labels"
 	"github.com/containerd/errdefs"
-	"github.com/containerd/log"
 	"github.com/containerd/platforms"
 	digest "github.com/opencontainers/go-digest"
 	ocispecs "github.com/opencontainers/image-spec/specs-go"
@@ -238,8 +237,11 @@ func Export(ctx context.Context, store content.InfoReaderProvider, writer io.Wri
 	for _, desc := range eo.manifests {
 		d, err := copySourceLabels(ctx, store, desc)
 		if err != nil {
-			log.G(ctx).WithError(err).WithField("desc", desc).Warn("failed to copy distribution.source labels")
-			continue
+			if !errdefs.IsNotFound(err) {
+				return fmt.Errorf("failed to copy distribution.source labels for %s: %w", desc.Digest, err)
+			}
+			// Keep missing roots so traversal can apply WithSkipMissing or
+			// report missing content instead of silently dropping the image.
 		}
 		manifests = append(manifests, d)
 	}
