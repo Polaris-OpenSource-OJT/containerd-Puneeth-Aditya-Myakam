@@ -51,6 +51,13 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Fetch upstream release tags for fork builds
+        if: github.repository != 'containerd/containerd'
+        working-directory: ./src/github.com/containerd/containerd
+        # Forks may have no release tags. The build needs them to derive a
+        # semantic version that Kubernetes can compare, rather than a bare SHA.
+        run: git fetch --no-tags https://github.com/containerd/containerd.git 'refs/tags/v*:refs/tags/v*'
+
       - name: Install Go
         uses: ./src/github.com/containerd/containerd/.github/actions/install-go
 
