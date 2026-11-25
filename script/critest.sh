@@ -31,7 +31,8 @@ function traverse_path() {
     done
 }
 
-BDIR="$(mktemp -d -p $PWD)"
+# Keep socket paths short even when the checkout has a long directory name.
+BDIR="$(mktemp -d /tmp/containerd-critest.XXXXXXXXXX)"
 # runc needs to traverse (+x) the directories in the path to the rootfs. This is important when we
 # create a user namespace, as the final stage of the runc initialization is not as root on the host.
 # While containerd creates the directories with the right permissions, the right group (so only the
